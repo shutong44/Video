@@ -1,0 +1,948 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>许愿应用</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@200;300;400;500&family=Ma+Shan+Zheng&family=Long+Cang&family=Playfair+Display:ital,wght@0,300;0,400;1,300&family=Crimson+Text:ital,wght@0,400;1,300&family=ZCOOL+XiaoWei&family=Noto+Sans+SC:wght@300;400;500&family=Source+Serif+Pro:ital,wght@0,300;0,400;1,300&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Noto Serif SC', serif;
+            font-weight: 300;
+            overflow: hidden;
+            background: #000;
+        }
+
+        .page {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100vh;
+            display: none;
+        }
+
+        .page.active {
+            display: block;
+        }
+
+        /* 页面1：视频页 */
+        .video-page {
+            background: #000;
+        }
+
+        .video-container {
+            position: relative;
+            width: 100%;
+            height: 100vh;
+            overflow: hidden;
+            z-index: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .video-bg {
+            width: auto;
+            height: 100vh;
+            max-width: 100%;
+            object-fit: contain;
+            object-position: center;
+        }
+
+        .wish-button {
+            position: fixed;
+            bottom: 60px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(74, 144, 226, 0.3);
+            color: #4A90E2;
+            border: none;
+            padding: 14px 28px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-family: 'Noto Sans SC', 'ZCOOL XiaoWei', sans-serif;
+            font-size: 16px;
+            font-weight: 500;
+            letter-spacing: 1.5px;
+            backdrop-filter: blur(15px);
+            z-index: 1000;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(74, 144, 226, 0.3);
+            pointer-events: auto;
+            -webkit-tap-highlight-color: transparent;
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 2px;
+        }
+
+        .button-text-chinese {
+            font-size: 16px;
+            font-weight: 700;
+            line-height: 1.2;
+            color: #4A90E2;
+        }
+
+        .button-text-english {
+            font-size: 12px;
+            font-weight: 700;
+            font-style: italic;
+            opacity: 0.9;
+            line-height: 1.2;
+            color: #4A90E2;
+        }
+
+        .wish-button:hover {
+            transform: translateX(-50%) translateY(-2px);
+            background: rgba(74, 144, 226, 0.5);
+        }
+
+        .wish-button:active {
+            transform: translateX(-50%) translateY(0);
+        }
+
+        /* 页面2：许愿页 */
+        .wish-page {
+            background: #000;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .wish-page::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: white;
+            z-index: 0;
+            animation: whiteFlash 3s ease-in-out infinite;
+        }
+
+        @keyframes whiteFlash {
+            0%, 100% {
+                opacity: 0;
+            }
+            50% {
+                opacity: 0.3;
+            }
+        }
+
+        .wish-bg-video {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: auto;
+            height: 100vh;
+            max-width: 100%;
+            object-fit: contain;
+            object-position: center;
+            z-index: 1;
+        }
+
+        .wish-content {
+            position: relative;
+            z-index: 2;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .wish-text {
+            text-align: center;
+            max-width: 90%;
+            font-weight: 400;
+        }
+
+        .chinese-text {
+            font-family: 'ZCOOL XiaoWei', 'Ma Shan Zheng', 'Long Cang', cursive;
+            font-size: 32px;
+            font-weight: 400;
+            letter-spacing: 4px;
+            line-height: 1.6;
+            margin-bottom: 20px;
+            text-shadow: 0 3px 15px rgba(255,182,193,0.6), 0 6px 25px rgba(255,105,180,0.4);
+            color: #ff6b9d;
+        }
+
+        .english-text {
+            font-family: 'Source Serif Pro', 'Crimson Text', 'Playfair Display', serif;
+            font-size: 20px;
+            font-weight: 300;
+            font-style: italic;
+            letter-spacing: 2px;
+            opacity: 0.9;
+            line-height: 1.5;
+            color: #ff8fab;
+            text-shadow: 0 2px 8px rgba(255,182,193,0.4);
+        }
+
+        .char {
+            display: inline-block;
+            opacity: 0;
+            transform: translateY(100px) scale(0.5);
+            animation: charFlyIn 1.5s ease-out forwards;
+            margin: 0 1px;
+        }
+
+        @keyframes charFlyIn {
+            0% {
+                opacity: 0;
+                transform: translateY(100px) scale(0.5);
+            }
+            70% {
+                transform: translateY(-10px) scale(1.1);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        .char.glow {
+            text-shadow: 0 0 15px rgba(255, 255, 255, 0.9), 0 0 30px rgba(255, 182, 193, 0.6);
+        }
+
+        .back-button {
+            position: absolute;
+            top: 30px;
+            left: 20px;
+            background: rgba(74, 144, 226, 0.3);
+            color: #4A90E2;
+            border: none;
+            padding: 14px 28px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-family: 'Noto Sans SC', 'ZCOOL XiaoWei', sans-serif;
+            font-size: 16px;
+            font-weight: 500;
+            letter-spacing: 1.5px;
+            backdrop-filter: blur(15px);
+            z-index: 20;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(74, 144, 226, 0.3);
+        }
+
+        .back-button:hover {
+            background: rgba(74, 144, 226, 0.5);
+            transform: translateY(-2px);
+        }
+
+
+
+        /* 移动端适配 */
+        @media (max-width: 768px) {
+            .video-container {
+                height: 100vh;
+                width: 100vw;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+            
+            .video-bg {
+                width: auto;
+                height: 100vh;
+                max-width: 100%;
+                object-fit: contain;
+                object-position: center;
+            }
+            
+            .wish-bg-video {
+                position: absolute;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                width: auto;
+                height: 100vh;
+                max-width: 100%;
+                object-fit: contain;
+                object-position: center;
+            }
+            
+            .wish-text {
+                font-size: 20px;
+                line-height: 1.6;
+            }
+            
+            .wish-button {
+                padding: 12px 30px;
+                font-size: 16px;
+                bottom: 50px;
+            }
+            
+            .char {
+                font-size: 20px;
+            }
+
+            .back-button {
+                padding: 10px 20px;
+                font-size: 13px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .video-container {
+                height: 100vh;
+                width: 100vw;
+                overflow: hidden;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+            
+            .video-bg {
+                width: auto;
+                height: 100vh;
+                max-width: 100%;
+                object-fit: contain;
+                object-position: center;
+            }
+            
+            .wish-bg-video {
+                position: absolute;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                width: auto;
+                height: 100vh;
+                max-width: 100%;
+                object-fit: contain;
+                object-position: center;
+            }
+            
+            .wish-text {
+                font-size: 18px;
+                line-height: 1.5;
+            }
+            
+            .wish-button {
+                padding: 10px 25px;
+                font-size: 14px;
+                bottom: 40px;
+            }
+            
+            .char {
+                font-size: 18px;
+            }
+
+            .back-button {
+                padding: 8px 16px;
+                font-size: 12px;
+                top: 20px;
+                left: 15px;
+            }
+        }
+
+        /* 粒子背景效果 */
+        .particles {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            z-index: 2;
+        }
+
+        .particle {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.7);
+            border-radius: 50%;
+            animation: float 8s infinite ease-in-out;
+        }
+
+        @keyframes float {
+            0%, 100% {
+                transform: translateY(0) rotate(0deg);
+                opacity: 0.7;
+            }
+            50% {
+                transform: translateY(-30px) rotate(180deg);
+                opacity: 1;
+            }
+        }
+
+        /* 加载动画 */
+        .loading {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            font-size: 18px;
+            color: #666;
+        }
+
+        .loading::after {
+            content: '';
+            width: 20px;
+            height: 20px;
+            border: 2px solid #ff9a9e;
+            border-top: 2px solid transparent;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-left: 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <!-- 页面1：视频页 -->
+    <div class="page video-page active" id="videoPage">
+        <div class="video-container">
+            <video class="video-bg" autoplay loop muted playsinline>
+                <source src="Hailuo_Video_Shot 1 (0-1s)_ Medium shot, st_422878710088404999 (3).mp4" type="video/mp4">
+                您的浏览器不支持视频播放
+            </video>
+        </div>
+        <button class="wish-button" id="wishBtn">
+            <div class="button-text-chinese">寻找你的答案</div>
+            <div class="button-text-english">Find your solution</div>
+        </button>
+    </div>
+
+    <!-- 页面2：许愿页 -->
+    <div class="page wish-page" id="wishPage">
+        <!-- 许愿页背景视频 -->
+        <video class="wish-bg-video" autoplay loop muted playsinline>
+            <source src="two page.mp4" type="video/mp4">
+        </video>
+        
+        <div class="particles" id="particles"></div>
+        <button class="back-button" onclick="goToVideoPage()">返回</button>
+        <div class="wish-content">
+            <div class="loading" id="loading" style="display: none;">正在获取答案...</div>
+            <div class="wish-text" id="wishText"></div>
+        </div>
+    </div>
+
+    <!-- 背景音乐 -->
+    <audio id="backgroundMusic" loop preload="auto" style="display: none;">
+        <source src="music.mp3" type="audio/mpeg">
+        您的浏览器不支持音频播放
+    </audio>
+
+    <script>
+        // 存储所有答案
+        let allAnswers = [];
+        let currentAnswer = '';
+
+        // 许愿答案数据（包含中英文）
+        const wishAnswers = [
+            { chinese: "寻求更多的选择", english: "Seek more options" },
+            { chinese: "不", english: "No" },
+            { chinese: "别忽视显而易见的东西", english: "Don't ignore the obvious" },
+            { chinese: "结果可能令人吃惊", english: "The result may be surprising" },
+            { chinese: "有决心就能成功", english: "Success comes with determination" },
+            { chinese: "做一次改变", english: "Make a change" },
+            { chinese: "照别人告诉你的去做", english: "Do as you're told" },
+            { chinese: "不能保证", english: "No guarantee" },
+            { chinese: "答案可能会以另一种形式出现", english: "The answer may come in another form" },
+            { chinese: "毫无疑问", english: "Without a doubt" },
+            { chinese: "这样做会使事情变得有趣", english: "This will make things interesting" },
+            { chinese: "这是肯定的", english: "This is certain" },
+            { chinese: "有可能会伤害到他人", english: "It might hurt others" },
+            { chinese: "全身心投入将赢得好结果", english: "Full commitment will bring good results" },
+            { chinese: "采取冒险的态度", english: "Take a risk" },
+            { chinese: "最好等待", english: "Better to wait" },
+            { chinese: "可能会惹上麻烦", english: "You might get into trouble" },
+            { chinese: "你需要采取主动", english: "You need to take initiative" },
+            { chinese: "似乎没问题", english: "Seems fine" },
+            { chinese: "当然", english: "Of course" },
+            { chinese: "不要在意", english: "Don't worry about it" },
+            { chinese: "尽早做好它", english: "Do it as soon as possible" },
+            { chinese: "你终会发现你想知道的一切", english: "You'll eventually find out everything you want to know" },
+            { chinese: "除非你独自一人", english: "Unless you're alone" },
+            { chinese: "是，但不要强求", english: "Yes, but don't force it" },
+            { chinese: "你需要去适应", english: "You need to adapt" },
+            { chinese: "明天再来试试", english: "Try again tomorrow" },
+            { chinese: "以更放松的态度去面对", english: "Face it with a more relaxed attitude" },
+            { chinese: "你需要考虑其他方法", english: "You need to consider other methods" },
+            { chinese: "在习惯中接受一些改变", english: "Accept some changes in your routine" },
+            { chinese: "要知道选择太多和选择太少一样很难", english: "Too many choices are as difficult as too few" },
+            { chinese: "别浪费时间了", english: "Don't waste time" },
+            { chinese: "是", english: "Yes" },
+            { chinese: "花更多时间来决定", english: "Take more time to decide" },
+            { chinese: "灵活应对", english: "Be flexible" },
+            { chinese: "似乎已成事实", english: "It seems to be a fact" },
+            { chinese: "看开一点", english: "Look at it differently" },
+            { chinese: "问问你的异性同事", english: "Ask your opposite-sex colleague" },
+            { chinese: "柳暗花明又一村", english: "Every cloud has a silver lining" },
+            { chinese: "你会后悔的", english: "You'll regret it" },
+            { chinese: "避免第一个解决办法", english: "Avoid the first solution" },
+            { chinese: "随它去吧", english: "Let it go" },
+            { chinese: "过段时间就不那么重要了", english: "It won't matter as much later" },
+            { chinese: "拭目以待", english: "Wait and see" },
+            { chinese: "相信你最初的想法", english: "Trust your initial thoughts" },
+            { chinese: "请不要抗拒", english: "Please don't resist" },
+            { chinese: "这会带来好运", english: "This will bring good luck" },
+            { chinese: "那一定很棒", english: "That must be great" },
+            { chinese: "把它记下来", english: "Write it down" },
+            { chinese: "可能发生小意外", english: "A small accident might happen" },
+            { chinese: "学习并享受它", english: "Learn and enjoy it" },
+            { chinese: "这具有重要意义", english: "This has great significance" },
+            { chinese: "防备意外发生", english: "Be prepared for accidents" },
+            { chinese: "一切将依赖于你的选择", english: "Everything depends on your choice" },
+            { chinese: "转移注意力", english: "Divert your attention" },
+            { chinese: "离开", english: "Leave" },
+            { chinese: "你需要其他人的帮助", english: "You need help from others" },
+            { chinese: "这有些特别", english: "This is somewhat special" },
+            { chinese: "不要犹豫", english: "Don't hesitate" },
+            { chinese: "先完成其他事", english: "Finish other things first" },
+            { chinese: "给自己一点时间", english: "Give yourself some time" },
+            { chinese: "现在你就能", english: "You can now" },
+            { chinese: "那不值得纠结", english: "It's not worth worrying about" },
+            { chinese: "那将影响别人对你的看法", english: "It will affect how others see you" },
+            { chinese: "照别人说的去做", english: "Do as others say" },
+            { chinese: "转移你的注意力", english: "Shift your attention" },
+            { chinese: "你会失望的", english: "You'll be disappointed" },
+            { chinese: "最好关注你的工作", english: "Better focus on your work" },
+            { chinese: "形式尚不明朗", english: "The situation is unclear" },
+            { chinese: "不要抱有成见", english: "Don't be prejudiced" },
+            { chinese: "你必须现在就行动", english: "You must act now" },
+            { chinese: "那可能很难，但值得", english: "It might be hard, but it's worth it" },
+            { chinese: "付出就会有回报", english: "Effort will be rewarded" },
+            { chinese: "对意外要有思想准备", english: "Be mentally prepared for surprises" },
+            { chinese: "更细心地去倾听，你就会知道", english: "Listen more carefully and you'll know" },
+            { chinese: "且行且思", english: "Think as you go" },
+            { chinese: "你有能力以任何方式改善", english: "You have the ability to improve in any way" },
+            { chinese: "这是你不会忘记的事物", english: "This is something you won't forget" },
+            { chinese: "履行你的义务", english: "Fulfill your obligations" },
+            { chinese: "快刀斩乱麻", english: "Cut the Gordian knot" },
+            { chinese: "别在这上面下赌注", english: "Don't bet on this" },
+            { chinese: "也许吧", english: "Maybe" },
+            { chinese: "专注于你的家庭生活", english: "Focus on your family life" },
+            { chinese: "绝对不", english: "Absolutely not" },
+            { chinese: "等待", english: "Wait" },
+            { chinese: "别犯傻了", english: "Don't be silly" },
+            { chinese: "可能吧", english: "Possibly" },
+            { chinese: "表示怀疑", english: "Express doubt" },
+            { chinese: "意义非凡", english: "Extraordinarily meaningful" },
+            { chinese: "那可能非同寻常", english: "That might be extraordinary" },
+            { chinese: "不可能失败", english: "Cannot fail" },
+            { chinese: "你需要了解更多", english: "You need to learn more" },
+            { chinese: "情况很快就会有变化", english: "The situation will change soon" },
+            { chinese: "这并不重要", english: "This is not important" },
+            { chinese: "顺其自然", english: "Let nature take its course" },
+            { chinese: "问问你最好的朋友", english: "Ask your best friend" },
+            { chinese: "这时不要再自找麻烦", english: "Don't look for trouble now" },
+            { chinese: "晚一点处理", english: "Handle it later" },
+            { chinese: "尝试一种更可能的解决方案", english: "Try a more likely solution" },
+            { chinese: "先做重要的事", english: "Do important things first" },
+            { chinese: "投硬币来做决定吧", english: "Flip a coin to decide" },
+            { chinese: "这也取决于另一种情况", english: "This also depends on another situation" },
+            { chinese: "你最终能如愿", english: "You'll eventually get your wish" },
+            { chinese: "可行", english: "Feasible" },
+            { chinese: "答案就在你家窗外", english: "The answer is outside your window" },
+            { chinese: "现在的你比以往任何时候都清楚", english: "You're clearer now than ever before" },
+            { chinese: "只需说声谢谢", english: "Just say thank you" },
+            { chinese: "或许，等你再年长些就明白了", english: "Perhaps you'll understand when you're older" },
+            { chinese: "这将轰动一时", english: "This will cause a sensation" },
+            { chinese: "放手一搏", english: "Take a chance" },
+            { chinese: "事情会朝目标发展", english: "Things will develop toward the goal" },
+            { chinese: "更细心去了解，你就知道该怎么做了", english: "Be more careful to understand, then you'll know what to do" },
+            { chinese: "需要做更多的努力", english: "More effort is needed" },
+            { chinese: "等待一个更好的机会", english: "Wait for a better opportunity" },
+            { chinese: "数到5，再试一次", english: "Count to 5, then try again" },
+            { chinese: "你不得不妥协", english: "You have to compromise" },
+            { chinese: "很快就能解决", english: "It will be solved soon" },
+            { chinese: "十分确定", english: "Very certain" },
+            { chinese: "这还不确定", english: "This is still uncertain" },
+            { chinese: "谨慎处理", english: "Handle with caution" },
+            { chinese: "全力以赴", english: "Give it your all" },
+            { chinese: "重新考虑你的做法", english: "Reconsider your approach" },
+            { chinese: "问问你的母亲吧", english: "Ask your mother" },
+            { chinese: "如果你独自一人就不要", english: "Don't if you're alone" },
+            { chinese: "无需担忧", english: "No need to worry" },
+            { chinese: "保持开放的心态", english: "Keep an open mind" },
+            { chinese: "你会为自己所做的感到高兴的", english: "You'll be glad for what you did" },
+            { chinese: "发挥你的想象力", english: "Use your imagination" },
+            { chinese: "献出你的一切", english: "Give everything you have" },
+            { chinese: "顺从你的意愿", english: "Follow your will" },
+            { chinese: "先做好自己的事", english: "Take care of your own business first" },
+            { chinese: "不要怀疑", english: "Don't doubt" },
+            { chinese: "是时候做新打算了", english: "Time to make new plans" },
+            { chinese: "省省力气吧", english: "Save your energy" },
+            { chinese: "合作将是关键", english: "Cooperation will be key" },
+            { chinese: "此时不宜", english: "Not suitable at this time" },
+            { chinese: "把这看做一次机会", english: "See this as an opportunity" },
+            { chinese: "莫等待", english: "Don't wait" },
+            { chinese: "你可能不得不放弃其他东西", english: "You might have to give up other things" },
+            { chinese: "遵守规则", english: "Follow the rules" },
+            { chinese: "相关问题可能会出现", english: "Related issues may arise" },
+            { chinese: "事情将如你所愿", english: "Things will go as you wish" },
+            { chinese: "赌一把", english: "Take a gamble" },
+            { chinese: "以后再处理", english: "Handle it later" },
+            { chinese: "结果是乐观的", english: "The result is optimistic" },
+            { chinese: "期待解决", english: "Expect a solution" },
+            { chinese: "灵活应对", english: "Respond flexibly" },
+            { chinese: "注意细节", english: "Pay attention to details" },
+            { chinese: "你的行动会使一切变好", english: "Your actions will make everything better" },
+            { chinese: "答案就在公园里", english: "The answer is in the park" },
+            { chinese: "消除你自身的障碍", english: "Remove your own obstacles" },
+            { chinese: "这是不明智的", english: "This is unwise" },
+            { chinese: "将需要大量的努力", english: "Will require great effort" },
+            { chinese: "不要勉强自己", english: "Don't force yourself" },
+            { chinese: "是时候做打算了", english: "Time to make plans" },
+            { chinese: "别再犹豫了", english: "Stop hesitating" },
+            { chinese: "享受这次体验", english: "Enjoy this experience" },
+            { chinese: "要付出坚持不懈的努力", english: "Persistent effort is required" },
+            { chinese: "那仍旧无法预测", english: "That's still unpredictable" },
+            { chinese: "毋庸置疑", english: "Beyond doubt" },
+            { chinese: "多花点时间来做决定", english: "Take more time to decide" },
+            { chinese: "只做这一次", english: "Only do this once" },
+            { chinese: "这是不明智的", english: "This is unwise" },
+            { chinese: "做些改变", english: "Make some changes" },
+            { chinese: "可行", english: "Feasible" },
+            { chinese: "先做好其他事", english: "Do other things first" },
+            { chinese: "不要陷入到情绪之中", english: "Don't get caught up in emotions" },
+            { chinese: "相信你的直觉", english: "Trust your intuition" },
+            { chinese: "采纳智者的建议", english: "Take wise advice" },
+            { chinese: "情况不明了", english: "The situation is unclear" },
+            { chinese: "你不得不妥协", english: "You have to compromise" },
+            { chinese: "列出否定的理由", english: "List the negative reasons" },
+            { chinese: "要有耐心", english: "Be patient" },
+            { chinese: "一笑置之", english: "Laugh it off" },
+            { chinese: "继续", english: "Continue" },
+            { chinese: "你必须随机应变", english: "You must adapt" },
+            { chinese: "别忘记享受乐趣", english: "Don't forget to have fun" },
+            { chinese: "那是在浪费金钱", english: "That's wasting money" },
+            { chinese: "重要的优先", english: "Important things first" },
+            { chinese: "为了做出最好的决定，务必保持冷静", english: "Stay calm to make the best decision" },
+            { chinese: "尝试一个更没把握的方法", english: "Try a more uncertain method" },
+            { chinese: "清除你自身的障碍", english: "Clear your own obstacles" },
+            { chinese: "那可能已成事实", english: "That might already be a fact" },
+            { chinese: "保守你的秘密", english: "Keep your secrets" },
+            { chinese: "你必须马上行动", english: "You must act immediately" },
+            { chinese: "不要妄下赌注", english: "Don't make rash bets" },
+            { chinese: "那可能已无法改变", english: "That might be unchangeable" },
+            { chinese: "一些帮助能确保你成功", english: "Some help will ensure your success" },
+            { chinese: "你肯定会获得支持", english: "You'll definitely get support" },
+            { chinese: "只做一次", english: "Only do it once" },
+            { chinese: "遵循智者的建议", english: "Follow wise advice" },
+            { chinese: "如你所愿", english: "As you wish" },
+            { chinese: "当局者迷", english: "Those involved are confused" },
+            { chinese: "无论你怎么做，结果依旧", english: "No matter what you do, the result remains" },
+            { chinese: "先主后次", english: "Important first, secondary later" },
+            { chinese: "这会让你付出代价", english: "This will cost you" },
+            { chinese: "尽早行动", english: "Act as soon as possible" },
+            { chinese: "寻求更多选择", english: "Seek more options" },
+            { chinese: "你现在比以往任何时候都清楚", english: "You're clearer now than ever" },
+            { chinese: "极可能发生事故", english: "An accident is very likely" },
+            { chinese: "带着好奇去探索", english: "Explore with curiosity" },
+            { chinese: "列出这样做的理由", english: "List the reasons for doing this" },
+            { chinese: "马上停下来", english: "Stop immediately" },
+            { chinese: "这不是很确定", english: "This is not very certain" },
+            { chinese: "不用担心", english: "Don't worry" },
+            { chinese: "不要告诉别人", english: "Don't tell others" },
+            { chinese: "你需要其他人的帮助", english: "You need help from others" },
+            { chinese: "那将是一件乐事", english: "That will be a pleasure" },
+            { chinese: "不要迫于压力草率行事", english: "Don't act rashly under pressure" },
+            { chinese: "不要等待", english: "Don't wait" },
+            { chinese: "你能以任何方式改善现状", english: "You can improve the situation in any way" },
+            { chinese: "你会为此感到高兴", english: "You'll be happy about this" },
+            { chinese: "放弃之前的想法", english: "Abandon previous thoughts" },
+            { chinese: "你不会忘记这些", english: "You won't forget these" },
+            { chinese: "谨慎对待", english: "Handle with caution" },
+            { chinese: "放弃你现在的想法", english: "Abandon your current thoughts" },
+            { chinese: "有理由保持乐观", english: "There's reason to be optimistic" },
+            { chinese: "你会发现自己难以妥协", english: "You'll find yourself hard to compromise" },
+            { chinese: "改变不会很快发生", english: "Change won't happen quickly" },
+            { chinese: "有些障碍需要克服", english: "Some obstacles need to be overcome" },
+            { chinese: "耐心点", english: "Be patient" },
+            { chinese: "果断放弃", english: "Decisively give up" },
+            { chinese: "最好把心思放在工作上", english: "Better focus on work" },
+            { chinese: "要做就做好，否则就不要去做", english: "Do it well or don't do it at all" },
+            { chinese: "深表怀疑", english: "Deeply suspicious" },
+            { chinese: "最好的解决方法可能不太明显", english: "The best solution might not be obvious" },
+            { chinese: "已超出你的控制", english: "Beyond your control" },
+            { chinese: "看看会发生什么", english: "See what happens" },
+            { chinese: "你需要更多信息", english: "You need more information" },
+            { chinese: "开阔视野", english: "Broaden your horizons" },
+            { chinese: "看得更清楚些", english: "See more clearly" },
+            { chinese: "结果可能会令人震惊", english: "The result might be shocking" },
+            { chinese: "节省你的精力吧", english: "Save your energy" },
+            { chinese: "管它呢", english: "Whatever" },
+            { chinese: "无论你做什么，结果依旧", english: "No matter what you do, the result remains" },
+            { chinese: "那将引起一些纷争", english: "That will cause some disputes" },
+            { chinese: "相关问题可能会浮出水面", english: "Related issues may surface" },
+            { chinese: "遵循其他人的建议", english: "Follow others' advice" },
+            { chinese: "改变将不会很快发生", english: "Change won't happen quickly" },
+            { chinese: "值得付出努力", english: "Worth the effort" },
+            { chinese: "负起责任来", english: "Take responsibility" },
+            { chinese: "不值得一争", english: "Not worth fighting for" },
+            { chinese: "问问你的父亲吧", english: "Ask your father" },
+            { chinese: "向别人倾诉", english: "Confide in others" },
+            { chinese: "看起来还行", english: "Looks okay" },
+            { chinese: "绝不", english: "Never" },
+            { chinese: "等待一个更好的提议", english: "Wait for a better proposal" },
+            { chinese: "你可能会遭遇反对", english: "You might face opposition" },
+            { chinese: "告诉某人那对你意味着什么", english: "Tell someone what it means to you" },
+            { chinese: "一切都取决于你的选择", english: "Everything depends on your choice" },
+            { chinese: "把这看作一个时机", english: "See this as an opportunity" },
+            { chinese: "不要陷入你的情绪", english: "Don't get caught up in your emotions" },
+            { chinese: "你一定得这么做", english: "You must do this" },
+            { chinese: "享受这个过程", english: "Enjoy the process" },
+            { chinese: "不识庐山真面目，只缘身在此山中", english: "You can't see the true face of Mount Lu because you're in it" },
+            { chinese: "你不会失望的", english: "You won't be disappointed" },
+            { chinese: "是时候走了", english: "Time to go" },
+            { chinese: "欣然接受", english: "Accept gladly" },
+            { chinese: "遵循其他人的意见", english: "Follow others' opinions" },
+            { chinese: "说出来吧", english: "Speak up" },
+            { chinese: "慷慨大度一些", english: "Be more generous" },
+            { chinese: "你可能遭遇反对", english: "You might face opposition" },
+            { chinese: "你能否不要抗拒", english: "Can you not resist" },
+            { chinese: "要障碍需要克服", english: "Obstacles need to be overcome" },
+            { chinese: "做出改变", english: "Make changes" },
+            { chinese: "无法保证", english: "No guarantee" },
+            { chinese: "算了吧", english: "Forget it" },
+            { chinese: "合作是关键", english: "Cooperation is key" }
+        ];
+
+        // 页面切换函数
+        function goToWishPage() {
+            console.log('goToWishPage 函数被调用');
+            try {
+                // 在页面切换时播放音乐
+                const music = document.getElementById('backgroundMusic');
+                if (music && music.paused) {
+                    music.play().catch(e => console.log('音乐播放失败:', e));
+                }
+                
+                // 隐藏视频页面
+                const videoPage = document.getElementById('videoPage');
+                const wishPage = document.getElementById('wishPage');
+                
+                if (videoPage) videoPage.classList.remove('active');
+                if (wishPage) wishPage.classList.add('active');
+                
+                console.log('页面切换完成');
+                
+                // 显示加载动画
+                const loading = document.getElementById('loading');
+                const wishText = document.getElementById('wishText');
+                
+                if (loading) loading.style.display = 'flex';
+                if (wishText) wishText.style.display = 'none';
+                
+                // 加载数据并开始动画
+                loadAnswersAndStartAnimation();
+                
+                // 创建粒子背景
+                createParticles();
+            } catch (error) {
+                console.error('页面切换错误:', error);
+            }
+        }
+
+        function goToVideoPage() {
+            document.getElementById('wishPage').classList.remove('active');
+            document.getElementById('videoPage').classList.add('active');
+        }
+
+
+
+        // 加载数据
+        function loadAnswersAndStartAnimation() {
+            try {
+                // 直接使用外部数据
+                allAnswers = wishAnswers;
+                console.log('加载了', allAnswers.length, '个答案');
+                
+                // 隐藏加载动画，显示文字
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('wishText').style.display = 'block';
+                
+                // 开始许愿动画
+                startWishAnimation();
+            } catch (error) {
+                console.error('加载数据失败:', error);
+                // 如果加载失败，使用默认答案
+                allAnswers = [
+                    "愿你的每一天都充满阳光和希望",
+                    "愿所有的美好都如期而至",
+                    "愿你的梦想都能实现"
+                ];
+                
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('wishText').style.display = 'block';
+                startWishAnimation();
+            }
+        }
+
+        // 许愿文字动画
+        function startWishAnimation() {
+            const wishTextElement = document.getElementById('wishText');
+            wishTextElement.innerHTML = '';
+            
+            // 随机选择一个答案
+            const selectedAnswer = allAnswers[Math.floor(Math.random() * allAnswers.length)];
+            currentAnswer = selectedAnswer;
+            
+            // 创建中文文本
+            const chineseText = document.createElement('div');
+            chineseText.className = 'chinese-text';
+            
+            // 将中文句子拆分成字符
+            const chineseChars = selectedAnswer.chinese.split('');
+            chineseChars.forEach((char, index) => {
+                const charElement = document.createElement('span');
+                charElement.textContent = char === ' ' ? '\u00A0' : char;
+                charElement.className = 'char';
+                
+                // 设置延迟时间
+                const delay = index * 0.1;
+                charElement.style.animationDelay = delay + 's';
+                
+                // 添加发光效果
+                if (Math.random() > 0.6) {
+                    charElement.classList.add('glow');
+                }
+                
+                chineseText.appendChild(charElement);
+            });
+            
+            // 创建英文文本
+            const englishText = document.createElement('div');
+            englishText.className = 'english-text';
+            
+            // 将英文句子拆分成字符
+            const englishChars = selectedAnswer.english.split('');
+            englishChars.forEach((char, index) => {
+                const charElement = document.createElement('span');
+                charElement.textContent = char === ' ' ? '\u00A0' : char;
+                charElement.className = 'char';
+                
+                // 设置延迟时间（比中文稍晚一点）
+                const delay = (chineseChars.length * 0.1) + (index * 0.05);
+                charElement.style.animationDelay = delay + 's';
+                
+                englishText.appendChild(charElement);
+            });
+            
+            wishTextElement.appendChild(chineseText);
+            wishTextElement.appendChild(englishText);
+        }
+
+        // 创建粒子背景
+        function createParticles() {
+            const particlesContainer = document.getElementById('particles');
+            particlesContainer.innerHTML = '';
+            
+            for (let i = 0; i < 25; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                
+                // 随机位置
+                particle.style.left = Math.random() * 100 + '%';
+                particle.style.top = Math.random() * 100 + '%';
+                
+                // 随机动画延迟和持续时间
+                particle.style.animationDelay = Math.random() * 8 + 's';
+                particle.style.animationDuration = (Math.random() * 4 + 6) + 's';
+                
+                // 随机大小
+                const size = Math.random() * 3 + 2;
+                particle.style.width = size + 'px';
+                particle.style.height = size + 'px';
+                
+                particlesContainer.appendChild(particle);
+            }
+        }
+
+        // 页面加载完成后初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            // 确保视频在移动端能正常播放
+            const video = document.querySelector('.video-bg');
+            video.addEventListener('loadeddata', function() {
+                video.play().catch(e => {
+                    console.log('视频自动播放被阻止:', e);
+                });
+            });
+            
+            // 添加按钮点击事件监听器（只使用一个事件）
+            const wishButton = document.getElementById('wishBtn');
+            if (wishButton) {
+                console.log('找到按钮元素');
+                
+                // 检测是否为移动设备
+                const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+                
+                if (isMobile) {
+                    // 移动端只使用touchend事件
+                    wishButton.addEventListener('touchend', function(e) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        console.log('移动端按钮被触摸');
+                        goToWishPage();
+                    }, { passive: false });
+                } else {
+                    // 桌面端只使用click事件
+                    wishButton.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        console.log('桌面端按钮被点击');
+                        goToWishPage();
+                    });
+                }
+            } else {
+                console.error('找不到按钮元素');
+            }
+
+            // 音乐播放函数
+            function playBackgroundMusic() {
+                const music = document.getElementById('backgroundMusic');
+                if (music) {
+                    music.volume = 0.3;
+                    music.muted = false; // 直接设置为非静音
+                    
+                    const playPromise = music.play();
+                    if (playPromise !== undefined) {
+                        playPromise.then(() => {
+                            console.log('音乐播放成功');
+                        }).catch(error => {
+                            console.log('自动播放被阻止，需要用户交互:', error);
+                        });
+                    }
+                }
+            }
+
+            // 尝试播放音乐
+            playBackgroundMusic();
+            
+            // 在用户第一次交互时播放音乐
+            document.body.addEventListener('click', function() {
+                playBackgroundMusic();
+            }, { once: true });
+            
+            // 在用户触摸时播放音乐（移动端）
+            document.body.addEventListener('touchstart', function() {
+                playBackgroundMusic();
+            }, { once: true });
+        });
+
+    </script>
+</body>
+</html>
