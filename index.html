@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>许愿应用</title>
+    <title>Wish_APP</title>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@200;300;400;500&family=Ma+Shan+Zheng&family=Long+Cang&family=Playfair+Display:ital,wght@0,300;0,400;1,300&family=Crimson+Text:ital,wght@0,400;1,300&family=ZCOOL+XiaoWei&family=Noto+Sans+SC:wght@300;400;500&family=Source+Serif+Pro:ital,wght@0,300;0,400;1,300&display=swap" rel="stylesheet">
     <style>
         * {
@@ -172,25 +172,25 @@
 
         .chinese-text {
             font-family: 'ZCOOL XiaoWei', 'Ma Shan Zheng', 'Long Cang', cursive;
-            font-size: 32px;
-            font-weight: 400;
-            letter-spacing: 4px;
+            font-size: 48px;
+            font-weight: 700;
+            letter-spacing: 6px;
             line-height: 1.6;
             margin-bottom: 20px;
-            text-shadow: 0 3px 15px rgba(255,182,193,0.6), 0 6px 25px rgba(255,105,180,0.4);
+            text-shadow: 0 4px 20px rgba(255,182,193,0.8), 0 8px 35px rgba(255,105,180,0.6);
             color: #ff6b9d;
         }
 
         .english-text {
             font-family: 'Source Serif Pro', 'Crimson Text', 'Playfair Display', serif;
-            font-size: 20px;
-            font-weight: 300;
+            font-size: 30px;
+            font-weight: 600;
             font-style: italic;
-            letter-spacing: 2px;
+            letter-spacing: 3px;
             opacity: 0.9;
             line-height: 1.5;
             color: #ff8fab;
-            text-shadow: 0 2px 8px rgba(255,182,193,0.4);
+            text-shadow: 0 3px 12px rgba(255,182,193,0.6);
         }
 
         .char {
@@ -244,6 +244,258 @@
             transform: translateY(-2px);
         }
 
+        /* AI聊天对话框样式 */
+        .ai-chat-container {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 350px;
+            height: 500px;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(20px);
+            z-index: 1000;
+            display: none;
+            flex-direction: column;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .ai-chat-container.open {
+            display: flex;
+        }
+
+        .chat-header {
+            background: linear-gradient(135deg, #4A90E2 0%, #357ABD 100%);
+            color: white;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-radius: 20px 20px 0 0;
+        }
+
+        .chat-title {
+            font-size: 16px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .connection-status {
+            font-size: 12px;
+            opacity: 0.8;
+            margin-left: 8px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .status-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: #4CAF50;
+            animation: pulse 2s infinite;
+        }
+
+        .status-dot.offline {
+            background: #f44336;
+        }
+
+        @keyframes pulse {
+            0% {
+                box-shadow: 0 0 0 0 rgba(76, 175, 80, 0.7);
+            }
+            70% {
+                box-shadow: 0 0 0 6px rgba(76, 175, 80, 0);
+            }
+            100% {
+                box-shadow: 0 0 0 0 rgba(76, 175, 80, 0);
+            }
+        }
+
+        .chat-close-btn {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 20px;
+            cursor: pointer;
+            padding: 5px;
+            border-radius: 50%;
+            transition: background 0.3s ease;
+        }
+
+        .chat-close-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .chat-messages {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            background: #f8f9fa;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .message {
+            max-width: 80%;
+            padding: 12px 16px;
+            border-radius: 18px;
+            font-size: 14px;
+            line-height: 1.4;
+            animation: messageSlideIn 0.3s ease-out;
+        }
+
+        @keyframes messageSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .message.user {
+            background: linear-gradient(135deg, #4A90E2 0%, #357ABD 100%);
+            color: white;
+            align-self: flex-end;
+            border-bottom-right-radius: 4px;
+        }
+
+        .message.ai {
+            background: white;
+            color: #333;
+            align-self: flex-start;
+            border-bottom-left-radius: 4px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .chat-input-container {
+            padding: 15px 20px;
+            background: white;
+            border-top: 1px solid #e9ecef;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .chat-input {
+            flex: 1;
+            padding: 12px 16px;
+            border: 2px solid #e9ecef;
+            border-radius: 25px;
+            font-size: 14px;
+            outline: none;
+            transition: border-color 0.3s ease;
+            background: #f8f9fa;
+        }
+
+        .chat-input:focus {
+            border-color: #4A90E2;
+            background: white;
+        }
+
+        .chat-send-btn {
+            background: linear-gradient(135deg, #4A90E2 0%, #357ABD 100%);
+            color: white;
+            border: none;
+            padding: 12px 16px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 16px;
+            transition: transform 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 44px;
+            height: 44px;
+        }
+
+        .chat-send-btn:hover {
+            transform: scale(1.05);
+        }
+
+        .chat-send-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .chat-toggle-btn {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            width: auto;
+            height: 50px;
+            background: linear-gradient(135deg, #4A90E2 0%, #357ABD 100%);
+            border: none;
+            border-radius: 25px;
+            color: white;
+            font-size: 14px;
+            cursor: pointer;
+            box-shadow: 0 6px 20px rgba(74, 144, 226, 0.4);
+            z-index: 999;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0 20px;
+            gap: 8px;
+            font-family: 'Noto Sans SC', sans-serif;
+            font-weight: 500;
+        }
+
+        .chat-toggle-btn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 8px 25px rgba(74, 144, 226, 0.6);
+        }
+
+        .typing-indicator {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            padding: 12px 16px;
+            background: white;
+            border-radius: 18px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            align-self: flex-start;
+            max-width: 80px;
+        }
+
+        .typing-dot {
+            width: 8px;
+            height: 8px;
+            background: #999;
+            border-radius: 50%;
+            animation: typing 1.4s infinite ease-in-out;
+        }
+
+        .typing-dot:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .typing-dot:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+
+        @keyframes typing {
+            0%, 60%, 100% {
+                transform: translateY(0);
+                opacity: 0.5;
+            }
+            30% {
+                transform: translateY(-10px);
+                opacity: 1;
+            }
+        }
+
 
 
         /* 移动端适配 */
@@ -277,7 +529,7 @@
             }
             
             .wish-text {
-                font-size: 20px;
+                font-size: 30px;
                 line-height: 1.6;
             }
             
@@ -288,12 +540,32 @@
             }
             
             .char {
-                font-size: 20px;
+                font-size: 30px;
             }
 
             .back-button {
                 padding: 10px 20px;
                 font-size: 13px;
+            }
+
+            /* 移动端聊天对话框适配 */
+            .ai-chat-container {
+                width: calc(100vw - 40px);
+                height: calc(100vh - 40px);
+                bottom: 20px;
+                right: 20px;
+                left: 20px;
+                border-radius: 15px;
+            }
+
+            .chat-toggle-btn {
+                top: 20px;
+                right: 15px;
+                width: auto;
+                height: 45px;
+                font-size: 12px;
+                padding: 0 15px;
+                gap: 6px;
             }
         }
 
@@ -328,7 +600,7 @@
             }
             
             .wish-text {
-                font-size: 18px;
+                font-size: 27px;
                 line-height: 1.5;
             }
             
@@ -339,7 +611,7 @@
             }
             
             .char {
-                font-size: 18px;
+                font-size: 27px;
             }
 
             .back-button {
@@ -347,6 +619,46 @@
                 font-size: 12px;
                 top: 20px;
                 left: 15px;
+            }
+
+            /* 小屏幕聊天对话框适配 */
+            .ai-chat-container {
+                width: calc(100vw - 20px);
+                height: calc(100vh - 20px);
+                bottom: 10px;
+                right: 10px;
+                left: 10px;
+                border-radius: 12px;
+            }
+
+            .chat-toggle-btn {
+                top: 15px;
+                right: 10px;
+                width: auto;
+                height: 40px;
+                font-size: 11px;
+                padding: 0 12px;
+                gap: 4px;
+            }
+
+            .chat-messages {
+                padding: 15px;
+            }
+
+            .message {
+                font-size: 13px;
+                padding: 10px 14px;
+            }
+
+            .chat-input {
+                padding: 10px 14px;
+                font-size: 13px;
+            }
+
+            .chat-send-btn {
+                width: 40px;
+                height: 40px;
+                font-size: 14px;
             }
         }
 
@@ -436,6 +748,43 @@
             <div class="loading" id="loading" style="display: none;">正在获取答案...</div>
             <div class="wish-text" id="wishText"></div>
         </div>
+        
+        <!-- AI聊天对话框 -->
+        <button class="chat-toggle-btn" id="chatToggleBtn" onclick="toggleChat()">
+            <span>月月陪伴</span>
+            <span>💬</span>
+        </button>
+        
+        <div class="ai-chat-container" id="chatContainer">
+            <div class="chat-header">
+                <div class="chat-title">
+                    🐰 月月Chat
+                    <div class="connection-status">
+                        <div class="status-dot" id="statusDot"></div>
+                        <span id="statusText">连接中...</span>
+                    </div>
+                </div>
+                <button class="chat-close-btn" onclick="toggleChat()">×</button>
+            </div>
+            
+            <div class="chat-messages" id="chatMessages">
+                <div class="message ai">
+                    你好呀，我是月月！如果你有什么不开心的事，跟我说说吧，我会认真听，一直陪着你呀～
+                </div>
+            </div>
+            
+            <div class="chat-input-container">
+                <input type="text" class="chat-input" id="chatInput" placeholder="输入你的问题..." maxlength="500">
+                <button class="chat-send-btn" id="chatSendBtn" onclick="sendMessage()">
+                    ➤
+                </button>
+            </div>
+            <div style="padding: 10px 20px; background: #f8f9fa; border-top: 1px solid #e9ecef; font-size: 12px; color: #666; text-align: center;">
+                <button onclick="testCozeAPI()" style="background: #4A90E2; color: white; border: none; padding: 5px 10px; border-radius: 3px; cursor: pointer; font-size: 11px;">
+                    测试Coze API连接
+                </button>
+            </div>
+        </div>
     </div>
 
     <!-- 背景音乐 -->
@@ -448,6 +797,20 @@
         // 存储所有答案
         let allAnswers = [];
         let currentAnswer = '';
+
+        // AI聊天相关变量
+        let isChatOpen = false;
+        let chatHistory = [];
+        let lastMessage = ''; // 记录上一条消息，避免重复
+        let requestCount = 0; // 请求计数
+        
+        // Coze BOT配置（预留接口）
+        const COZE_CONFIG = {
+            botId: '7549780494092189748', // 填入你的BOT ID
+            apiKey: 'pat_fuWcCKzmVCdYVlZjpEwCQVnHnoUOfbuGAk347sB0vMWaeBkBUs5ozp7JMYbSrSzh', // 填入你的API密钥
+            baseUrl: 'https://api.coze.cn/open_api/v2/chat', // Coze API地址 - 使用v2版本
+            enabled: true // 启用真实API
+        };
 
         // 许愿答案数据（包含中英文）
         const wishAnswers = [
@@ -812,6 +1175,526 @@
             document.getElementById('videoPage').classList.add('active');
         }
 
+        // AI聊天功能
+        function toggleChat() {
+            const chatContainer = document.getElementById('chatContainer');
+            const chatToggleBtn = document.getElementById('chatToggleBtn');
+            
+            isChatOpen = !isChatOpen;
+            
+            if (isChatOpen) {
+                chatContainer.classList.add('open');
+                chatToggleBtn.style.display = 'none';
+                // 聚焦到输入框
+                setTimeout(() => {
+                    document.getElementById('chatInput').focus();
+                }, 300);
+            } else {
+                chatContainer.classList.remove('open');
+                chatToggleBtn.style.display = 'flex';
+            }
+        }
+
+        function sendMessage() {
+            const chatInput = document.getElementById('chatInput');
+            const chatMessages = document.getElementById('chatMessages');
+            const chatSendBtn = document.getElementById('chatSendBtn');
+            const message = chatInput.value.trim();
+            
+            if (!message) return;
+            
+            // 检查是否是重复消息
+            if (message === lastMessage) {
+                console.log('检测到重复消息，添加变化');
+                // 为重复消息添加微小变化，避免API过滤
+                const modifiedMessage = message + '（重复）';
+                chatInput.value = modifiedMessage;
+            }
+            
+            lastMessage = message;
+            requestCount++;
+            
+            // 禁用发送按钮
+            chatSendBtn.disabled = true;
+            
+            // 添加用户消息
+            addMessage(message, 'user');
+            chatInput.value = '';
+            
+            // 添加到聊天历史
+            chatHistory.push({ role: 'user', content: message });
+            
+            // 显示打字指示器
+            showTypingIndicator();
+            
+            // 发送到AI并获取响应
+            getAIResponse(message);
+        }
+
+        function addMessage(content, sender) {
+            const chatMessages = document.getElementById('chatMessages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${sender}`;
+            messageDiv.textContent = content;
+            chatMessages.appendChild(messageDiv);
+            
+            // 滚动到底部
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        function showTypingIndicator() {
+            const chatMessages = document.getElementById('chatMessages');
+            const typingDiv = document.createElement('div');
+            typingDiv.className = 'typing-indicator';
+            typingDiv.id = 'typingIndicator';
+            
+            for (let i = 0; i < 3; i++) {
+                const dot = document.createElement('div');
+                dot.className = 'typing-dot';
+                typingDiv.appendChild(dot);
+            }
+            
+            chatMessages.appendChild(typingDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        function hideTypingIndicator() {
+            const typingIndicator = document.getElementById('typingIndicator');
+            if (typingIndicator) {
+                typingIndicator.remove();
+            }
+        }
+
+        async function getAIResponse(userMessage, retryCount = 0) {
+            try {
+                let aiResponse;
+                
+                if (COZE_CONFIG.enabled && COZE_CONFIG.botId && COZE_CONFIG.apiKey) {
+                    // 使用Coze BOT API
+                    updateConnectionStatus('connecting');
+                    aiResponse = await callCozeAPI(userMessage);
+                    
+                    // 检查响应是否有效
+                    if (!aiResponse || aiResponse.trim() === '' || aiResponse.includes('抱歉，我现在无法理解')) {
+                        // 如果响应无效且重试次数少于1次，重试一次
+                        if (retryCount < 1) {
+                            console.log('API响应无效，重试中...');
+                            updateConnectionStatus('connecting');
+                            await new Promise(resolve => setTimeout(resolve, 1000)); // 等待1秒
+                            return getAIResponse(userMessage, retryCount + 1);
+                        } else {
+                            console.log('重试失败，使用模拟响应');
+                            aiResponse = getMockAIResponse(userMessage);
+                        }
+                    }
+                    
+                    updateConnectionStatus('online');
+                } else {
+                    // 使用模拟响应
+                    aiResponse = getMockAIResponse(userMessage);
+                    // 模拟网络延迟
+                    await new Promise(resolve => setTimeout(resolve, 1000 + Math.random() * 2000));
+                }
+                
+                // 移除打字指示器
+                hideTypingIndicator();
+                
+                // 添加AI响应
+                addMessage(aiResponse, 'ai');
+                
+                // 添加到聊天历史
+                chatHistory.push({ role: 'assistant', content: aiResponse });
+                
+            } catch (error) {
+                console.error('AI响应错误:', error);
+                updateConnectionStatus('offline');
+                hideTypingIndicator();
+                
+                // 如果重试次数少于1次，尝试重试
+                if (retryCount < 1) {
+                    console.log('API调用失败，重试中...');
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+                    return getAIResponse(userMessage, retryCount + 1);
+                } else {
+                    addMessage('抱歉，我现在无法回应。请稍后再试。', 'ai');
+                }
+            } finally {
+                // 重新启用发送按钮
+                document.getElementById('chatSendBtn').disabled = false;
+            }
+        }
+
+        // 更新连接状态
+        function updateConnectionStatus(status) {
+            const statusDot = document.getElementById('statusDot');
+            const statusText = document.getElementById('statusText');
+            
+            if (!statusDot || !statusText) return;
+            
+            switch (status) {
+                case 'online':
+                    statusDot.className = 'status-dot';
+                    statusText.textContent = '在线';
+                    break;
+                case 'offline':
+                    statusDot.className = 'status-dot offline';
+                    statusText.textContent = '离线';
+                    break;
+                case 'connecting':
+                    statusDot.className = 'status-dot';
+                    statusText.textContent = '连接中...';
+                    break;
+            }
+        }
+
+        // 测试Coze连接
+        async function testCozeConnection() {
+            updateConnectionStatus('connecting');
+            
+            try {
+                // 发送一个简单的测试消息
+                const testMessage = '测试连接';
+                console.log('开始测试Coze API连接...');
+                
+                const response = await fetch(COZE_CONFIG.baseUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${COZE_CONFIG.apiKey}`
+                    },
+                    body: JSON.stringify({
+                        bot_id: COZE_CONFIG.botId,
+                        user: 'test_user',
+                        query: testMessage,
+                        stream: false
+                    })
+                });
+                
+                console.log('连接测试响应状态:', response.status);
+                
+                if (response.ok) {
+                    updateConnectionStatus('online');
+                    console.log('Coze API连接测试成功');
+                } else {
+                    const errorText = await response.text();
+                    console.error('连接测试失败:', response.status, errorText);
+                    updateConnectionStatus('offline');
+                }
+                
+            } catch (error) {
+                console.error('连接测试错误:', error);
+                updateConnectionStatus('offline');
+            }
+        }
+
+        // 手动测试Coze API连接
+        async function testCozeAPI() {
+            const statusText = document.getElementById('statusText');
+            if (statusText) {
+                statusText.textContent = '测试中...';
+            }
+            
+            try {
+                console.log('手动测试Coze API连接...');
+                
+                const response = await fetch(COZE_CONFIG.baseUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${COZE_CONFIG.apiKey}`
+                    },
+                    body: JSON.stringify({
+                        bot_id: COZE_CONFIG.botId,
+                        user: 'manual_test',
+                        query: '你好',
+                        stream: false
+                    })
+                });
+                
+                const responseText = await response.text();
+                console.log('API测试响应状态:', response.status);
+                console.log('API测试响应内容:', responseText);
+                
+                if (response.ok) {
+                    // 尝试解析响应内容
+                    let responseContent = '';
+                    try {
+                        const data = JSON.parse(responseText);
+                        
+                        // 优先处理messages格式
+                        if (data.messages && Array.isArray(data.messages) && data.messages.length > 0) {
+                            for (let i = data.messages.length - 1; i >= 0; i--) {
+                                const message = data.messages[i];
+                                if (message.type === 'answer' && message.content && message.content.trim() !== '') {
+                                    responseContent = message.content;
+                                    break;
+                                }
+                            }
+                            if (!responseContent) {
+                                responseContent = 'API连接成功，但未找到有效回复内容';
+                            }
+                        } 
+                        // 处理流式响应格式
+                        else if (data.msg_type === 'generate_answer_finish' && data.data) {
+                            const dataObj = JSON.parse(data.data);
+                            if (dataObj.FinData && dataObj.FinData.trim() !== '') {
+                                responseContent = dataObj.FinData;
+                            } else {
+                                responseContent = 'API连接成功，但BOT响应为空。将使用智能模拟响应。';
+                            }
+                        } else {
+                            responseContent = responseText.substring(0, 200);
+                        }
+                    } catch (e) {
+                        responseContent = responseText.substring(0, 200);
+                    }
+                    
+                    alert('✅ Coze API连接成功！\n响应状态: ' + response.status + '\n响应内容: ' + responseContent);
+                    if (statusText) {
+                        statusText.textContent = 'API可用';
+                    }
+                } else {
+                    alert('❌ Coze API连接失败！\n状态码: ' + response.status + '\n错误信息: ' + responseText);
+                    if (statusText) {
+                        statusText.textContent = 'API错误';
+                    }
+                }
+                
+            } catch (error) {
+                console.error('API测试错误:', error);
+                alert('❌ Coze API测试出错！\n错误: ' + error.message);
+                if (statusText) {
+                    statusText.textContent = '连接错误';
+                }
+            }
+        }
+
+        // Coze API调用函数
+        async function callCozeAPI(message) {
+            try {
+                console.log('发送消息到Coze API:', message);
+                console.log('请求计数:', requestCount);
+                console.log('使用配置:', {
+                    baseUrl: COZE_CONFIG.baseUrl,
+                    botId: COZE_CONFIG.botId,
+                    apiKey: COZE_CONFIG.apiKey.substring(0, 20) + '...'
+                });
+                
+                // 添加请求延迟，避免过于频繁的请求
+                if (requestCount > 1) {
+                    const delay = Math.min(1000 + (requestCount * 200), 3000);
+                    console.log('添加请求延迟:', delay + 'ms');
+                    await new Promise(resolve => setTimeout(resolve, delay));
+                }
+                
+                // 构建请求体 - 使用Coze API的标准格式
+                const requestBody = {
+                    bot_id: COZE_CONFIG.botId,
+                    user: 'user_' + Date.now() + '_' + requestCount,
+                    query: message,
+                    stream: false
+                };
+                
+                // 如果有聊天历史，添加进去（限制数量避免过长）
+                if (chatHistory.length > 0) {
+                    requestBody.chat_history = chatHistory.slice(-5); // 减少到5条历史
+                }
+                
+                console.log('请求体:', requestBody);
+                
+                const response = await fetch(COZE_CONFIG.baseUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${COZE_CONFIG.apiKey}`
+                    },
+                    body: JSON.stringify(requestBody)
+                });
+                
+                console.log('API响应状态:', response.status);
+                console.log('响应头:', Object.fromEntries(response.headers.entries()));
+                
+                // 先尝试读取响应文本，无论状态码如何
+                const responseText = await response.text();
+                console.log('原始响应文本:', responseText);
+                
+                if (!response.ok) {
+                    let errorData;
+                    try {
+                        errorData = JSON.parse(responseText);
+                    } catch (e) {
+                        errorData = { message: responseText };
+                    }
+                    console.error('API错误详情:', errorData);
+                    throw new Error(`API请求失败: ${response.status} - ${errorData.message || errorData.error || '未知错误'}`);
+                }
+                
+                let data;
+                try {
+                    data = JSON.parse(responseText);
+                } catch (e) {
+                    console.error('响应解析失败:', e);
+                    throw new Error('API响应格式错误');
+                }
+                
+                console.log('解析后的响应数据:', data);
+                
+                // 处理Coze API的响应格式 - 多种可能的响应结构
+                // 优先处理messages格式（标准响应）
+                if (data.messages && Array.isArray(data.messages) && data.messages.length > 0) {
+                    console.log('检测到messages格式响应:', data.messages);
+                    
+                    // 查找最后一个answer类型的消息
+                    for (let i = data.messages.length - 1; i >= 0; i--) {
+                        const message = data.messages[i];
+                        if (message.type === 'answer' && message.content && message.content.trim() !== '') {
+                            console.log('找到有效回复:', message.content);
+                            return message.content;
+                        }
+                    }
+                    
+                    // 如果没有找到answer类型，尝试任何有content的消息
+                    for (let i = data.messages.length - 1; i >= 0; i--) {
+                        const message = data.messages[i];
+                        if (message.content && message.content.trim() !== '') {
+                            console.log('找到有效内容:', message.content);
+                            return message.content;
+                        }
+                    }
+                }
+                
+                // 处理流式响应格式 (你遇到的格式)
+                if (data.msg_type === 'generate_answer_finish') {
+                    try {
+                        const dataObj = JSON.parse(data.data);
+                        if (dataObj.FinData && dataObj.FinData.trim() !== '') {
+                            return dataObj.FinData;
+                        } else {
+                            // 如果FinData为空，检查finish_reason
+                            console.log('FinData为空，finish_reason:', dataObj.finish_reason);
+                            if (dataObj.finish_reason === 0) {
+                                // finish_reason为0通常表示正常完成但内容为空
+                                console.log('API正常完成但内容为空，使用模拟响应');
+                                return getMockAIResponse(message);
+                            } else {
+                                console.log('API异常完成，使用模拟响应');
+                                return getMockAIResponse(message);
+                            }
+                        }
+                    } catch (e) {
+                        console.log('解析FinData失败:', e);
+                        // 解析失败时也使用模拟响应
+                        return getMockAIResponse(message);
+                    }
+                }
+                
+                // 处理其他流式响应格式
+                if (data.msg_type === 'generate_answer' && data.data) {
+                    try {
+                        const dataObj = JSON.parse(data.data);
+                        if (dataObj.content) {
+                            return dataObj.content;
+                        }
+                        if (dataObj.answer) {
+                            return dataObj.answer;
+                        }
+                    } catch (e) {
+                        console.log('解析流式数据失败:', e);
+                    }
+                }
+                
+                // 尝试其他响应格式
+                if (data.content) {
+                    return data.content;
+                }
+                
+                if (data.text) {
+                    return data.text;
+                }
+                
+                if (data.answer) {
+                    return data.answer;
+                }
+                
+                if (data.data && data.data.content) {
+                    return data.data.content;
+                }
+                
+                // 如果仍然没有找到有效响应，返回调试信息和默认消息
+                console.log('未找到有效响应格式，原始数据:', data);
+                return '抱歉，我现在无法理解你的问题，请换个方式提问。';
+                
+            } catch (error) {
+                console.error('Coze API调用错误:', error);
+                throw error;
+            }
+        }
+
+        // 模拟AI响应函数（月月小兔兔风格）
+        function getMockAIResponse(message) {
+            const lowerMessage = message.toLowerCase();
+            
+            // 月月小兔兔的可爱回应
+            const yueyueResponses = [
+                "哎呀，这个问题让小兔兔想想呢~ 🌿",
+                "嗯嗯，月月明白啦！让我来帮你想想~ 🐰",
+                "嘻嘻，这个问题很有趣呢！小兔兔来回答你~ ✨",
+                "哇，你问得真好！让我想想怎么回答你~ 🌟",
+                "嗯嗯，月月知道答案啦！听我说哦~ 💫",
+                "嘻嘻，这个问题让小兔兔很开心呢！让我告诉你~ 🌸",
+                "哇塞，你问得真棒！月月来帮你解答~ 🌺",
+                "嗯嗯，小兔兔明白你的意思啦！让我想想~ 🌼"
+            ];
+            
+            // 根据消息内容提供更相关的响应
+            if (lowerMessage.includes('你好') || lowerMessage.includes('hi') || lowerMessage.includes('hello')) {
+                return "你好呀，我是月月！如果你有什么不开心的事，跟我说说吧，我会认真听，一直陪着你呀～🐰💕";
+            } else if (lowerMessage.includes('在吗') || lowerMessage.includes('在线')) {
+                return "在的在的！月月一直都在这里呢~ 有什么需要小兔兔帮忙的吗？🐰💕";
+            } else if (lowerMessage.includes('郁闷') || lowerMessage.includes('不开心') || lowerMessage.includes('难过')) {
+                return "哎呀，不要郁闷啦~ 来，给你一片最嫩的草草，我们一起数星星好不好？小兔兔陪着你呢！🌟🌿";
+            } else if (lowerMessage.includes('喜欢') || lowerMessage.includes('爱')) {
+                return "当然喜欢呀！像喜欢晚霞一样暖暖的~ 小兔兔最喜欢和大家一起聊天啦！🌅💖";
+            } else if (lowerMessage.includes('累') || lowerMessage.includes('疲惫')) {
+                return "累累的话，来片嫩嫩的草草垫垫手手哒~ 小兔兔给你准备了好多好多草草呢！🌱💚";
+            } else if (lowerMessage.includes('谢谢') || lowerMessage.includes('感谢')) {
+                return "不用客气啦！小兔兔最喜欢帮助大家了~ 还有什么需要月月的吗？🐰💕";
+            } else if (lowerMessage.includes('再见') || lowerMessage.includes('拜拜')) {
+                return "再见啦！记得想小兔兔哦~ 月月会一直在这里等你的！🌟💖";
+            } else if (lowerMessage.includes('星星') || lowerMessage.includes('天空')) {
+                return "哇，你也喜欢看星星吗？小兔兔最喜欢躺在草原上数星星啦！一闪一闪亮晶晶~ ✨🌟";
+            } else if (lowerMessage.includes('草') || lowerMessage.includes('草原')) {
+                return "草原上的草草最嫩最香啦！小兔兔每天都要吃好多好多呢~ 你要不要也尝尝？🌿🐰";
+            } else if (lowerMessage.includes('你是谁') || lowerMessage.includes('介绍') || lowerMessage.includes('叫什么名字')) {
+                return "我叫月月哒，是草原上的小兔兔啦~ 最喜欢和大家聊天，分享快乐，还有吃嫩嫩的草草！🐰🌿✨";
+            } else if (lowerMessage.includes('taylor') || lowerMessage.includes('泰勒斯威夫特') || lowerMessage.includes('霉霉')) {
+                return "喜欢呀，她的歌歌像风风一样轻轻柔柔哒，听得我心里暖暖的呜~ 最喜欢'Love Story'啦，像晚霞一样浪漫呢！🎵✨";
+            } else if (lowerMessage.includes('推荐') || lowerMessage.includes('歌曲') || lowerMessage.includes('歌')) {
+                return "好呀，给你推荐几首我最喜欢的Taylor的歌歌啦：'Love Story'像晚霞一样浪漫哒，'You Belong With Me'像草地一样清新呜，'All Too Well'像风风一样温柔嘛~ 🎶🌿";
+            } else if (lowerMessage.includes('数学') || lowerMessage.includes('计算') || lowerMessage.includes('+') || lowerMessage.includes('=')) {
+                // 简单的数学计算
+                const mathMatch = message.match(/(\d+)\s*\+\s*(\d+)/);
+                if (mathMatch) {
+                    const num1 = parseInt(mathMatch[1]);
+                    const num2 = parseInt(mathMatch[2]);
+                    const result = num1 + num2;
+                    return `${num1}+${num2}=${result}呀，给你一片最嫩的草草，垫垫手手，陪陪心跳跳嘛~ 🌿💕`;
+                }
+                return "数学题呀！小兔兔来帮你算算~ 虽然月月数学不是很好，但是很愿意陪你一起思考呢！🧮🐰";
+            } else {
+                // 随机月月风格响应
+                const randomResponse = yueyueResponses[Math.floor(Math.random() * yueyueResponses.length)];
+                const additionalResponses = [
+                    "小兔兔觉得这个问题很有意思呢！",
+                    "月月来帮你想想答案~",
+                    "嘻嘻，让小兔兔告诉你~",
+                    "嗯嗯，月月知道怎么回答你！"
+                ];
+                const additional = additionalResponses[Math.floor(Math.random() * additionalResponses.length)];
+                return randomResponse + " " + additional;
+            }
+        }
+
 
 
         // 加载数据
@@ -995,7 +1878,56 @@
             // 强制加载视频
             forceVideoLoad();
             forceWishVideoLoad();
+            
+            // 初始化聊天功能
+            initializeChatFeatures();
+            
+            // 初始化连接状态
+            if (COZE_CONFIG.enabled && COZE_CONFIG.botId && COZE_CONFIG.apiKey) {
+                // 测试API连接
+                testCozeConnection();
+            } else {
+                // 使用智能模拟模式
+                updateConnectionStatus('online');
+                const statusText = document.getElementById('statusText');
+                if (statusText) {
+                    statusText.textContent = '智能响应';
+                }
+            }
         });
+
+        // 初始化聊天功能
+        function initializeChatFeatures() {
+            const chatInput = document.getElementById('chatInput');
+            const chatSendBtn = document.getElementById('chatSendBtn');
+            
+            if (chatInput) {
+                // 回车键发送消息
+                chatInput.addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                        e.preventDefault();
+                        sendMessage();
+                    }
+                });
+                
+                // 输入框变化时启用/禁用发送按钮
+                chatInput.addEventListener('input', function() {
+                    chatSendBtn.disabled = !this.value.trim();
+                });
+            }
+            
+            // 点击聊天区域外关闭对话框
+            document.addEventListener('click', function(e) {
+                const chatContainer = document.getElementById('chatContainer');
+                const chatToggleBtn = document.getElementById('chatToggleBtn');
+                
+                if (isChatOpen && 
+                    !chatContainer.contains(e.target) && 
+                    !chatToggleBtn.contains(e.target)) {
+                    toggleChat();
+                }
+            });
+        }
 
     </script>
 </body>
