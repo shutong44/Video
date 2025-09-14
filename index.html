@@ -251,10 +251,11 @@
             right: 20px;
             width: 350px;
             height: 500px;
-            background: rgba(255, 255, 255, 0.95);
+            background: rgba(255, 255, 255, 0.1);
             border-radius: 20px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
             backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
             z-index: 1000;
             display: none;
             flex-direction: column;
@@ -336,7 +337,7 @@
             flex: 1;
             padding: 20px;
             overflow-y: auto;
-            background: #f8f9fa;
+            background: rgba(248, 249, 250, 0.3);
             display: flex;
             flex-direction: column;
             gap: 15px;
@@ -363,27 +364,30 @@
         }
 
         .message.user {
-            background: linear-gradient(135deg, #4A90E2 0%, #357ABD 100%);
+            background: rgba(74, 144, 226, 0.8);
             color: white;
             align-self: flex-end;
             border-bottom-right-radius: 4px;
+            backdrop-filter: blur(10px);
         }
 
         .message.ai {
-            background: white;
+            background: rgba(255, 255, 255, 0.9);
             color: #333;
             align-self: flex-start;
             border-bottom-left-radius: 4px;
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
         }
 
         .chat-input-container {
             padding: 15px 20px;
-            background: white;
-            border-top: 1px solid #e9ecef;
+            background: rgba(255, 255, 255, 0.8);
+            border-top: 1px solid rgba(233, 236, 239, 0.5);
             display: flex;
             gap: 10px;
             align-items: center;
+            backdrop-filter: blur(10px);
         }
 
         .chat-input {
@@ -426,6 +430,57 @@
             opacity: 0.6;
             cursor: not-allowed;
             transform: none;
+        }
+
+        .chat-voice-btn {
+            background: linear-gradient(135deg, #FF6B6B, #E55353);
+            color: white;
+            border: none;
+            padding: 12px 16px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 16px;
+            transition: transform 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 44px;
+            height: 44px;
+        }
+
+        .chat-voice-btn:hover {
+            transform: scale(1.05);
+        }
+
+        .chat-voice-btn.recording {
+            background: linear-gradient(135deg, #28A745, #1E7E34);
+            animation: pulse 1.5s infinite;
+        }
+
+        .chat-voice-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+
+        .voice-status {
+            position: absolute;
+            top: -30px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 5px 10px;
+            border-radius: 15px;
+            font-size: 12px;
+            white-space: nowrap;
+            z-index: 1000;
         }
 
         .chat-toggle-btn {
@@ -550,11 +605,12 @@
 
             /* 移动端聊天对话框适配 */
             .ai-chat-container {
-                width: calc(100vw - 40px);
-                height: calc(100vh - 40px);
-                bottom: 20px;
-                right: 20px;
-                left: 20px;
+                width: 75vw;
+                height: 75vh;
+                top: 12.5vh;
+                left: 12.5vw;
+                bottom: auto;
+                right: auto;
                 border-radius: 15px;
             }
 
@@ -623,11 +679,12 @@
 
             /* 小屏幕聊天对话框适配 */
             .ai-chat-container {
-                width: calc(100vw - 20px);
-                height: calc(100vh - 20px);
-                bottom: 10px;
-                right: 10px;
-                left: 10px;
+                width: 75vw;
+                height: 75vh;
+                top: 12.5vh;
+                left: 12.5vw;
+                bottom: auto;
+                right: auto;
                 border-radius: 12px;
             }
 
@@ -775,13 +832,11 @@
             
             <div class="chat-input-container">
                 <input type="text" class="chat-input" id="chatInput" placeholder="输入你的问题..." maxlength="500">
+                <button class="chat-voice-btn" id="chatVoiceBtn" onclick="toggleVoiceRecording()" title="语音输入">
+                    🎤
+                </button>
                 <button class="chat-send-btn" id="chatSendBtn" onclick="sendMessage()">
                     ➤
-                </button>
-            </div>
-            <div style="padding: 10px 20px; background: #f8f9fa; border-top: 1px solid #e9ecef; font-size: 12px; color: #666; text-align: center;">
-                <button onclick="testCozeAPI()" style="background: #4A90E2; color: white; border: none; padding: 5px 10px; border-radius: 3px; cursor: pointer; font-size: 11px;">
-                    测试Coze API连接
                 </button>
             </div>
         </div>
@@ -803,6 +858,12 @@
         let chatHistory = [];
         let lastMessage = ''; // 记录上一条消息，避免重复
         let requestCount = 0; // 请求计数
+        
+        // 语音功能相关变量
+        let isRecording = false;
+        let recognition = null;
+        let speechSynthesis = window.speechSynthesis;
+        let currentUtterance = null;
         
         // Coze BOT配置（预留接口）
         const COZE_CONFIG = {
@@ -1240,6 +1301,14 @@
             
             // 滚动到底部
             chatMessages.scrollTop = chatMessages.scrollHeight;
+            
+            // 如果是AI消息，自动播放语音
+            if (sender === 'ai' && speechSynthesis) {
+                // 延迟一点播放，让用户看到消息
+                setTimeout(() => {
+                    speakText(content);
+                }, 500);
+            }
         }
 
         function showTypingIndicator() {
@@ -1283,8 +1352,8 @@
                             await new Promise(resolve => setTimeout(resolve, 1000)); // 等待1秒
                             return getAIResponse(userMessage, retryCount + 1);
                         } else {
-                            console.log('重试失败，使用模拟响应');
-                            aiResponse = getMockAIResponse(userMessage);
+                            console.log('重试失败，使用月月休息消息');
+                            aiResponse = '月月刚刚休息啦~，可以再说一遍吗';
                         }
                     }
                     
@@ -1316,7 +1385,7 @@
                     await new Promise(resolve => setTimeout(resolve, 1000));
                     return getAIResponse(userMessage, retryCount + 1);
                 } else {
-                    addMessage('抱歉，我现在无法回应。请稍后再试。', 'ai');
+                    addMessage('月月刚刚休息啦~，可以再说一遍吗', 'ai');
                 }
             } finally {
                 // 重新启用发送按钮
@@ -1570,16 +1639,10 @@
                         if (dataObj.FinData && dataObj.FinData.trim() !== '') {
                             return dataObj.FinData;
                         } else {
-                            // 如果FinData为空，检查finish_reason
+                            // 如果FinData为空，使用月月休息消息
                             console.log('FinData为空，finish_reason:', dataObj.finish_reason);
-                            if (dataObj.finish_reason === 0) {
-                                // finish_reason为0通常表示正常完成但内容为空
-                                console.log('API正常完成但内容为空，使用模拟响应');
-                                return getMockAIResponse(message);
-                            } else {
-                                console.log('API异常完成，使用模拟响应');
-                                return getMockAIResponse(message);
-                            }
+                            console.log('月月刚刚休息啦，返回休息消息');
+                            return '月月刚刚休息啦~，可以再说一遍吗';
                         }
                     } catch (e) {
                         console.log('解析FinData失败:', e);
@@ -1620,9 +1683,9 @@
                     return data.data.content;
                 }
                 
-                // 如果仍然没有找到有效响应，返回调试信息和默认消息
+                // 如果仍然没有找到有效响应，返回月月休息消息
                 console.log('未找到有效响应格式，原始数据:', data);
-                return '抱歉，我现在无法理解你的问题，请换个方式提问。';
+                return '月月刚刚休息啦~，可以再说一遍吗';
                 
             } catch (error) {
                 console.error('Coze API调用错误:', error);
@@ -1695,7 +1758,280 @@
             }
         }
 
+        // 语音功能相关函数
+        function initializeVoiceFeatures() {
+            // 预加载语音列表
+            loadVoices();
+            
+            // 检查浏览器是否支持语音识别
+            if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+                const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+                recognition = new SpeechRecognition();
+                
+                recognition.continuous = false;
+                recognition.interimResults = false;
+                recognition.lang = 'zh-CN'; // 设置为中文
+                
+                recognition.onstart = function() {
+                    console.log('语音识别开始');
+                    isRecording = true;
+                    updateVoiceButton();
+                };
+                
+                recognition.onresult = function(event) {
+                    const transcript = event.results[0][0].transcript;
+                    console.log('语音识别结果:', transcript);
+                    document.getElementById('chatInput').value = transcript;
+                    isRecording = false;
+                    updateVoiceButton();
+                };
+                
+                recognition.onerror = function(event) {
+                    console.error('语音识别错误:', event.error);
+                    isRecording = false;
+                    updateVoiceButton();
+                    showVoiceStatus('语音识别失败: ' + event.error);
+                };
+                
+                recognition.onend = function() {
+                    console.log('语音识别结束');
+                    isRecording = false;
+                    updateVoiceButton();
+                };
+            } else {
+                console.log('浏览器不支持语音识别');
+                document.getElementById('chatVoiceBtn').style.display = 'none';
+            }
+        }
 
+        function loadVoices() {
+            // 加载语音列表
+            if (speechSynthesis.onvoiceschanged !== undefined) {
+                speechSynthesis.onvoiceschanged = function() {
+                    console.log('语音列表已加载');
+                };
+            }
+            
+            // 强制加载语音列表
+            const voices = speechSynthesis.getVoices();
+            if (voices.length === 0) {
+                // 如果语音列表为空，延迟重试
+                setTimeout(loadVoices, 100);
+            } else {
+                console.log('找到', voices.length, '个可用语音');
+                // 显示中文语音信息
+                const chineseVoices = voices.filter(v => v.lang.includes('zh') || v.lang.includes('CN'));
+                console.log('中文语音:', chineseVoices.map(v => ({ name: v.name, lang: v.lang })));
+            }
+        }
+
+        function toggleVoiceRecording() {
+            if (!recognition) {
+                showVoiceStatus('浏览器不支持语音识别');
+                return;
+            }
+
+            if (isRecording) {
+                recognition.stop();
+                isRecording = false;
+            } else {
+                recognition.start();
+                isRecording = true;
+            }
+            updateVoiceButton();
+        }
+
+        function updateVoiceButton() {
+            const voiceBtn = document.getElementById('chatVoiceBtn');
+            if (isRecording) {
+                voiceBtn.classList.add('recording');
+                voiceBtn.innerHTML = '🔴';
+                voiceBtn.title = '停止录音';
+            } else {
+                voiceBtn.classList.remove('recording');
+                voiceBtn.innerHTML = '🎤';
+                voiceBtn.title = '语音输入';
+            }
+        }
+
+        function speakText(text) {
+            if (!speechSynthesis) {
+                console.log('浏览器不支持语音合成');
+                return;
+            }
+
+            // 停止当前播放
+            if (currentUtterance) {
+                speechSynthesis.cancel();
+            }
+
+            // 预处理文本，让语音更可爱
+            const processedText = preprocessTextForSpeech(text);
+
+            currentUtterance = new SpeechSynthesisUtterance(processedText);
+            currentUtterance.lang = 'zh-CN'; // 设置为中文
+            
+            // 优化语音参数，让声音像4-10岁小孩子
+            currentUtterance.rate = 1.0; // 1.0倍语速，正常语速
+            currentUtterance.pitch = 1.8; // 音调更高，像小孩子的尖细声音
+            currentUtterance.volume = 0.9; // 音量适中，像小孩子的音量
+
+            // 获取所有可用语音
+            const voices = speechSynthesis.getVoices();
+            console.log('可用语音列表:', voices.map(v => ({ name: v.name, lang: v.lang, gender: v.name.toLowerCase().includes('female') || v.name.toLowerCase().includes('女') })));
+            
+            // 优先选择女性/儿童语音，按优先级排序
+            let selectedVoice = null;
+            
+            // 第一优先级：明确标记为儿童或小女孩的语音
+            selectedVoice = voices.find(voice => 
+                voice.lang.includes('zh') && (
+                    voice.name.toLowerCase().includes('child') ||
+                    voice.name.toLowerCase().includes('儿童') ||
+                    voice.name.toLowerCase().includes('kid') ||
+                    voice.name.toLowerCase().includes('girl') ||
+                    voice.name.toLowerCase().includes('xiaoxiao') ||
+                    voice.name.toLowerCase().includes('xiaoyun') ||
+                    voice.name.toLowerCase().includes('xiaofeng') ||
+                    voice.name.toLowerCase().includes('xiaoqian') ||
+                    voice.name.toLowerCase().includes('meimei') ||
+                    voice.name.toLowerCase().includes('yaya') ||
+                    voice.name.toLowerCase().includes('tingting') ||
+                    voice.name.toLowerCase().includes('lili') ||
+                    voice.name.toLowerCase().includes('nana')
+                )
+            );
+            
+            // 第二优先级：任何中文女性语音
+            if (!selectedVoice) {
+                selectedVoice = voices.find(voice => 
+                    voice.lang.includes('zh') && 
+                    (voice.name.toLowerCase().includes('female') || voice.name.toLowerCase().includes('女'))
+                );
+            }
+            
+            // 第三优先级：任何中文语音
+            if (!selectedVoice) {
+                selectedVoice = voices.find(voice => 
+                    voice.lang.includes('zh') || voice.lang.includes('CN')
+                );
+            }
+            
+            if (selectedVoice) {
+                currentUtterance.voice = selectedVoice;
+                console.log('选择的语音:', selectedVoice.name, selectedVoice.lang);
+                
+                // 根据选择的语音进一步调整参数，让声音更像4-10岁小孩子
+                adjustVoiceForChild(selectedVoice, currentUtterance);
+            }
+
+            currentUtterance.onstart = function() {
+                console.log('开始播放语音:', selectedVoice ? selectedVoice.name : '默认语音');
+                console.log('播放内容:', processedText);
+            };
+
+            currentUtterance.onend = function() {
+                console.log('语音播放结束');
+                currentUtterance = null;
+            };
+
+            currentUtterance.onerror = function(event) {
+                console.error('语音播放错误:', event.error);
+                currentUtterance = null;
+            };
+
+            speechSynthesis.speak(currentUtterance);
+        }
+
+        function adjustVoiceForChild(selectedVoice, utterance) {
+            const voiceName = selectedVoice.name.toLowerCase();
+            
+            // 专门的小孩子语音（如小晓、小云等）
+            if (voiceName.includes('xiaoxiao') || 
+                voiceName.includes('xiaoyun') ||
+                voiceName.includes('xiaoqian') ||
+                voiceName.includes('meimei') ||
+                voiceName.includes('yaya') ||
+                voiceName.includes('tingting') ||
+                voiceName.includes('lili') ||
+                voiceName.includes('nana')) {
+                // 最像4-10岁小孩子的参数，正常语速
+                utterance.rate = 1.0; // 1.0倍语速，正常语速
+                utterance.pitch = 2.2; // 很高，像小孩子的尖细声音
+                utterance.volume = 0.8; // 像小孩子的音量
+                console.log('使用专门的小孩子语音参数');
+            }
+            // 儿童/女孩语音
+            else if (voiceName.includes('child') || 
+                     voiceName.includes('儿童') ||
+                     voiceName.includes('kid') ||
+                     voiceName.includes('girl')) {
+                utterance.rate = 1.0; // 1.0倍语速
+                utterance.pitch = 2.0;
+                utterance.volume = 0.85;
+                console.log('使用儿童语音参数');
+            }
+            // 女性语音调整为小孩子
+            else if (voiceName.includes('female') || voiceName.includes('女')) {
+                utterance.rate = 1.0; // 1.0倍语速
+                utterance.pitch = 1.9;
+                utterance.volume = 0.9;
+                console.log('使用女性语音调整为小孩子参数');
+            }
+            // 其他语音也尽量调整为小孩子声音
+            else {
+                utterance.rate = 1.0; // 1.0倍语速
+                utterance.pitch = 1.8;
+                utterance.volume = 0.9;
+                console.log('使用通用小孩子语音参数');
+            }
+        }
+
+        function preprocessTextForSpeech(text) {
+            // 预处理文本，让语音更像4-10岁小孩子说话
+            let processed = text;
+            
+            // 替换一些词汇，让发音更可爱
+            processed = processed.replace(/~/g, '～'); // 使用全角波浪号
+            processed = processed.replace(/\./g, '。'); // 使用中文句号
+            processed = processed.replace(/!/g, '！'); // 使用中文感叹号
+            processed = processed.replace(/\?/g, '？'); // 使用中文问号
+            
+            // 在可爱词汇后添加停顿，像小孩子说话
+            processed = processed.replace(/(小兔兔|月月|草草|星星|晚霞)/g, '$1，，');
+            
+            // 在语气词后添加停顿，让语音更生动，像小孩子
+            processed = processed.replace(/(哒|呜|嘛|呀|啦|呢|哦|嗯)/g, '$1，，');
+            
+            // 在句子中间添加更多停顿，像小孩子说话时的停顿
+            processed = processed.replace(/(，|。|！|？)/g, '$1 ');
+            
+            // 在重复的词汇间添加停顿，像小孩子说话
+            processed = processed.replace(/(草草|星星|晚霞)(草草|星星|晚霞)/g, '$1，，$2');
+            
+            // 在数字后添加停顿，像小孩子数数
+            processed = processed.replace(/(\d+)/g, '$1，，');
+            
+            return processed;
+        }
+
+        function showVoiceStatus(message) {
+            // 创建状态提示
+            const status = document.createElement('div');
+            status.className = 'voice-status';
+            status.textContent = message;
+            
+            const voiceBtn = document.getElementById('chatVoiceBtn');
+            voiceBtn.style.position = 'relative';
+            voiceBtn.appendChild(status);
+            
+            // 3秒后移除提示
+            setTimeout(() => {
+                if (status.parentNode) {
+                    status.parentNode.removeChild(status);
+                }
+            }, 3000);
+        }
 
         // 加载数据
         function loadAnswersAndStartAnimation() {
@@ -1848,7 +2184,7 @@
             function playBackgroundMusic() {
                 const music = document.getElementById('backgroundMusic');
                 if (music) {
-                    music.volume = 0.3;
+                    music.volume = 0.15; // 降低音量到0.15，更轻柔
                     music.muted = false; // 直接设置为非静音
                     
                     const playPromise = music.play();
@@ -1915,6 +2251,9 @@
                     chatSendBtn.disabled = !this.value.trim();
                 });
             }
+            
+            // 初始化语音功能
+            initializeVoiceFeatures();
             
             // 点击聊天区域外关闭对话框
             document.addEventListener('click', function(e) {
