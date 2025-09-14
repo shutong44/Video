@@ -605,10 +605,10 @@
 
             /* 移动端聊天对话框适配 */
             .ai-chat-container {
-                width: 75vw;
-                height: 75vh;
-                top: 12.5vh;
-                left: 12.5vw;
+                width: 90vw;
+                height: 80vh;
+                top: 10vh;
+                left: 5vw;
                 bottom: auto;
                 right: auto;
                 border-radius: 15px;
@@ -622,6 +622,30 @@
                 font-size: 12px;
                 padding: 0 15px;
                 gap: 6px;
+            }
+
+            /* 中等屏幕输入区域适配 */
+            .chat-input-container {
+                padding: 12px 15px;
+                gap: 8px;
+                flex-wrap: nowrap;
+            }
+
+            .chat-input {
+                padding: 10px 12px;
+                font-size: 13px;
+                border-radius: 20px;
+                min-width: 0;
+                flex: 1;
+            }
+
+            .chat-voice-btn,
+            .chat-send-btn {
+                width: 42px;
+                height: 42px;
+                padding: 10px;
+                font-size: 15px;
+                flex-shrink: 0;
             }
         }
 
@@ -679,10 +703,10 @@
 
             /* 小屏幕聊天对话框适配 */
             .ai-chat-container {
-                width: 75vw;
-                height: 75vh;
-                top: 12.5vh;
-                left: 12.5vw;
+                width: 95vw;
+                height: 85vh;
+                top: 7.5vh;
+                left: 2.5vw;
                 bottom: auto;
                 right: auto;
                 border-radius: 12px;
@@ -707,15 +731,54 @@
                 padding: 10px 14px;
             }
 
-            .chat-input {
-                padding: 10px 14px;
-                font-size: 13px;
+            /* 移动端输入区域适配 */
+            .chat-input-container {
+                padding: 12px 15px;
+                gap: 8px;
+                flex-wrap: nowrap;
             }
 
+            .chat-input {
+                padding: 10px 12px;
+                font-size: 13px;
+                border-radius: 20px;
+                min-width: 0;
+                flex: 1;
+            }
+
+            .chat-voice-btn,
             .chat-send-btn {
                 width: 40px;
                 height: 40px;
+                padding: 8px;
                 font-size: 14px;
+                flex-shrink: 0;
+            }
+
+        }
+
+        /* 移动端键盘弹出时的适配 */
+        @media (max-width: 768px) and (orientation: portrait) {
+            .ai-chat-container {
+                height: 70vh !important;
+                top: 15vh !important;
+            }
+            
+            .chat-messages {
+                max-height: calc(70vh - 120px);
+                overflow-y: auto;
+            }
+        }
+
+        @media (max-width: 480px) and (orientation: portrait) {
+            .ai-chat-container {
+                height: 65vh !important;
+                top: 17.5vh !important;
+            }
+            
+            .chat-messages {
+                max-height: calc(65vh - 100px);
+                overflow-y: auto;
             }
         }
 
